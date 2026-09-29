@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setDefaultTextEncodingName("UTF-8");
 
         webView.setWebViewClient(new WebViewClient()); // keep navigation inside the app, no browser popup
 
@@ -79,6 +80,7 @@ public class MainActivity extends Activity {
 
         // Load the app entirely from local assets — no network involved, ever.
         webView.loadUrl("file:///android_asset/index.html");
+        
     }
 
     @Override
