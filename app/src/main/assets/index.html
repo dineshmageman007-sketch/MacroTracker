@@ -336,7 +336,7 @@ function ringHTML(key,value,label){
 function openTargetsSheet(){
   const t=targets||{};
   document.getElementById('sheet').innerHTML=`<h3>\uD83C\uDFAF Daily Targets</h3>
-      <div class="formgrid">
+    <div class="formgrid">
       <div><label>Kcal</label><input id="tg-kcal" type="number" step="any" value="${t.kcal||''}" placeholder="e.g. 2200"></div>
       <div><label>Carbs (g)</label><input id="tg-carbs" type="number" step="any" value="${t.carbs||''}"></div>
       <div><label>Protein (g)</label><input id="tg-protein" type="number" step="any" value="${t.protein||''}"></div>
@@ -407,7 +407,7 @@ function renderToday(){
     }
     const rightControl = editMode
       ? `<div class="orderbtns"><button onclick="event.stopPropagation();moveItem(${idx},-1)">\u25B2</button><button onclick="event.stopPropagation();moveItem(${idx},1)">\u25BC</button></div>
-         ${it.kind==='food'?`<button class="rmbtn" onclick="event.stopPropagation();removeItem('${it.id}')">\u2715</button>`:''}`
+         <button class="rmbtn" onclick="event.stopPropagation();removeItem('${it.id}')">\u2715</button>`
       : `<div class="checkring ${checked?'on':''}" onclick="event.stopPropagation();quickToggle('${it.id}','${it.kind}')"><span class="tick">\u2713</span></div>`;
     const iconItem={foodId:it.kind==='food'?it.foodId:(f?it.foodId:null),group:it.group};
     h+=`<div class="foodcard" onclick="openItemSheet('${it.id}')">
@@ -440,12 +440,33 @@ function quickToggle(itemId,kind){
 }
 function openAddFood(){
   const used=new Set(tpl.items.filter(i=>i.kind==='food').map(i=>i.foodId));
-  const avail=db.filter(f=>f.group===''&&!used.has(f.id));
-  let h=`<h3>Add a Food</h3>`;
-  if(avail.length===0)h+=`<div class="empty">All standalone foods are already on your list. Add new ones in Database.</div>`;
-  avail.forEach(f=>{h+=`<div class="optrow" onclick="addFoodItem('${f.id}')"><div class="t">${f.name}</div></div>`;});
+  const avail=db.filter(f=>!f.group&&!used.has(f.id));
+  // groups that aren't on today's list yet (every group known to Database or the groups store)
+  const usedGroups=new Set(tpl.items.filter(i=>i.kind==='choice').map(i=>i.group));
+  const allGroups=[]; Object.keys(groups).concat(db.map(f=>f.group).filter(Boolean)).forEach(g=>{ if(g&&allGroups.indexOf(g)<0)allGroups.push(g); });
+  const availGroups=allGroups.filter(g=>!usedGroups.has(g));
+  let h=`<h3>Add to your list</h3>`;
+  if(avail.length===0&&availGroups.length===0)h+=`<div class="empty">Everything is already on your list. Add new foods or groups in Database.</div>`;
+  if(avail.length){
+    h+=`<div class="section-title" style="margin:6px 2px 8px">Foods</div>`;
+    avail.forEach(f=>{h+=`<div class="optrow" onclick="addFoodItem('${f.id}')"><div class="t">${f.name}</div></div>`;});
+  }
+  if(availGroups.length){
+    h+=`<div class="section-title" style="margin:14px 2px 8px">Groups</div>`;
+    availGroups.forEach(g=>{
+      const n=db.filter(f=>f.group===g).length;
+      h+=`<div class="optrow" onclick="addGroupItem('${jsEsc(g)}')"><div class="t">${g}</div><div style="color:var(--muted);font-size:12.5px">${n} option${n===1?'':'s'}</div></div>`;
+    });
+  }
   h+=`<button class="btn secondary" onclick="closeSheet()">Cancel</button>`;
   document.getElementById('sheet').innerHTML=h; document.getElementById('overlay').classList.remove('hidden');
+}
+function addGroupItem(g){
+  if(!(g in groups)){groups[g]=true; save(LS_GRP,groups);}
+  const id=uid();
+  tpl.items.push({id,kind:'choice',group:g,foodId:null,qty:0});
+  save(LS_TPL,tpl); closeSheet(); renderToday();
+  openItemSheet(id); // jump straight to picking which food from the group
 }
 function addFoodItem(foodId){
   const f=findFood(foodId);
