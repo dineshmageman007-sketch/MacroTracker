@@ -78,10 +78,10 @@ input,select{background:var(--card2);border:1px solid var(--border);color:var(--
 <body>
 <header>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
-    <h1 style="margin:0">ðŸ¥— Macro Tracker</h1>
+    <h1 style="margin:0">&#x1F957; Macro Tracker</h1>
     <div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="pillbtn" onclick="openBackupSheet()">â‡µ Backup</button>
-      <button id="installBtn" class="pillbtn active hidden" onclick="doInstall()">â¬‡ Install</button>
+      <button class="pillbtn" onclick="openBackupSheet()">&#x21F5; Backup</button>
+      <button id="installBtn" class="pillbtn active hidden" onclick="doInstall()">&#x2B07; Install</button>
     </div>
   </div>
   <div class="tabs">
@@ -100,7 +100,7 @@ input,select{background:var(--card2);border:1px solid var(--border);color:var(--
 <script>
 /* ---------- PWA install setup ---------- */
 try{
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" rx="110" fill="#8b6bff"/><text x="50%" y="58%" font-size="300" text-anchor="middle" dominant-baseline="middle">ðŸ¥—</text></svg>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" rx="110" fill="#8b6bff"/><text x="50%" y="58%" font-size="300" text-anchor="middle" dominant-baseline="middle">\uD83E\uDD57</text></svg>`;
   const iconUri='data:image/svg+xml,'+encodeURIComponent(svg);
   const manifest={name:'Macro Tracker',short_name:'Macros',start_url:'.',scope:'.',display:'standalone',
     background_color:'#0b0b0f',theme_color:'#0b0b0f',
@@ -142,13 +142,13 @@ function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
 /* ---------- BACKUP (export / import) ---------- */
 function openBackupSheet(){
-  document.getElementById('sheet').innerHTML=`<h3>â‡µ Backup</h3>
+  document.getElementById('sheet').innerHTML=`<h3>\u21F5 Backup</h3>
     <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">
-      Export everything â€” your foods, today's list (order &amp; amounts), groups, targets, and full history â€” into one file. Importing that file later fully replaces what's currently on this device.
+      Export everything \u2014 your foods, today's list (order &amp; amounts), groups, targets, and full history \u2014 into one file. Importing that file later fully replaces what's currently on this device.
     </div>
     <div class="btnrow">
-      <button class="btn" onclick="exportData()">â¬‡ Export to file</button>
-      <button class="btn secondary" onclick="document.getElementById('importFile').click()">â¬† Import from file</button>
+      <button class="btn" onclick="exportData()">\u2B07 Export to file</button>
+      <button class="btn secondary" onclick="document.getElementById('importFile').click()">\u2B06 Import from file</button>
     </div>
     <div class="btnrow"><button class="btn secondary" onclick="closeSheet()">Close</button></div>`;
   document.getElementById('overlay').classList.remove('hidden');
@@ -235,7 +235,7 @@ let targets=load(LS_TARGETS,null); // {kcal,carbs,protein,fat,fibre} or null if 
 let editMode=false;
 
 function findFood(id){return db.find(f=>f.id===id);}
-function isPersistent(g){return true;} // every group now behaves like Cooked Rice â€” the picked food sticks across days; the per-day tick only marks "eaten today", it never clears the pick
+function isPersistent(g){return true;} // every group now behaves like Cooked Rice \u2014 the picked food sticks across days; the per-day tick only marks "eaten today", it never clears the pick
 function macrosFor(id,qty){const f=findFood(id);if(!f||!qty)return{kcal:0,carbs:0,protein:0,fat:0,fibre:0};const k=qty/f.basis;
   return{kcal:f.kcal*k,carbs:f.carbs*k,protein:f.protein*k,fat:f.fat*k,fibre:f.fibre*k};}
 function addM(a,b){a.kcal+=b.kcal;a.carbs+=b.carbs;a.protein+=b.protein;a.fat+=b.fat;a.fibre+=b.fibre;}
@@ -244,12 +244,12 @@ function iconFor(item){
   if(f){
     if(f.icon)return f.icon;
     const n=f.name.toLowerCase();
-    if(n.includes('egg'))return 'ðŸ¥š'; if(n.includes('chicken'))return 'ðŸ—'; if(n.includes('rice'))return 'ðŸš';
-    if(n.includes('banana'))return 'ðŸŒ'; if(n.includes('date'))return 'ðŸŒ´'; if(n.includes('corn'))return 'ðŸ¥£';
-    if(n.includes('peanut butter'))return 'ðŸ¥œ'; if(n.includes('peanut'))return 'ðŸ¥œ'; if(n.includes('carrot'))return 'ðŸ¥•';
-    return 'ðŸ½ï¸';}
-  const g=item.group||''; if(g==='Cooked Rice')return 'ðŸš'; if(g==='Breakfast')return 'ðŸ³'; if(g==='Curry')return 'ðŸ›'; if(g==='Dinner')return 'ðŸ½ï¸';
-  return 'ðŸ½ï¸'; // any other group with nothing picked yet â€” generic plate, not a "?"
+    if(n.includes('egg'))return '\uD83E\uDD5A'; if(n.includes('chicken'))return '\uD83C\uDF57'; if(n.includes('rice'))return '\uD83C\uDF5A';
+    if(n.includes('banana'))return '\uD83C\uDF4C'; if(n.includes('date'))return '\uD83C\uDF34'; if(n.includes('corn'))return '\uD83E\uDD63';
+    if(n.includes('peanut butter'))return '\uD83E\uDD5C'; if(n.includes('peanut'))return '\uD83E\uDD5C'; if(n.includes('carrot'))return '\uD83E\uDD55';
+    return '\uD83C\uDF7D\uFE0F';}
+  const g=item.group||''; if(g==='Cooked Rice')return '\uD83C\uDF5A'; if(g==='Breakfast')return '\uD83C\uDF73'; if(g==='Curry')return '\uD83C\uDF5B'; if(g==='Dinner')return '\uD83C\uDF7D\uFE0F';
+  return '\uD83C\uDF7D\uFE0F'; // any other group with nothing picked yet \u2014 generic plate, not a "?"
 }
 function colorFor(item){
   const f=item.foodId?findFood(item.foodId):null;
@@ -335,8 +335,8 @@ function ringHTML(key,value,label){
 /* ---------- TARGETS ---------- */
 function openTargetsSheet(){
   const t=targets||{};
-  document.getElementById('sheet').innerHTML=`<h3>ðŸŽ¯ Daily Targets</h3>
-    <div class="formgrid">
+  document.getElementById('sheet').innerHTML=`<h3>\uD83C\uDFAF Daily Targets</h3>
+      <div class="formgrid">
       <div><label>Kcal</label><input id="tg-kcal" type="number" step="any" value="${t.kcal||''}" placeholder="e.g. 2200"></div>
       <div><label>Carbs (g)</label><input id="tg-carbs" type="number" step="any" value="${t.carbs||''}"></div>
       <div><label>Protein (g)</label><input id="tg-protein" type="number" step="any" value="${t.protein||''}"></div>
@@ -364,10 +364,10 @@ function renderToday(){
   const date=todayStr(); const L=ensureDay(date); const t=dayTotals(date);
   const streak=calcStreaks();
   const hasTargets=!!(targets&&targets.kcal>0);
-  const streakMsg=streak.todayDone?(hasTargets?'On target today â€” keep it going':'Logged today â€” keep it going')
+  const streakMsg=streak.todayDone?(hasTargets?'On target today \u2014 keep it going':'Logged today \u2014 keep it going')
     :(hasTargets?'Hit your kcal target today to keep your streak':'Log something today to keep your streak');
   let h=`<div class="summary-card" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
-    <div style="font-size:30px;line-height:1">ðŸ”¥</div>
+    <div style="font-size:30px;line-height:1">\uD83D\uDD25</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:19px;font-weight:800">${streak.current} day${streak.current===1?'':'s'}</div>
       <div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakMsg}</div>
@@ -379,7 +379,7 @@ function renderToday(){
   </div>`;
   h+=`<div class="summary-card"><div class="sectionhead" style="margin:0 0 10px">
       <div class="section-title">Today's Macros</div>
-      <div class="pillbtn ${hasTargets?'active':''}" onclick="openTargetsSheet()">ðŸŽ¯ ${hasTargets?'Edit Targets':'Set Targets'}</div>
+      <div class="pillbtn ${hasTargets?'active':''}" onclick="openTargetsSheet()">\uD83C\uDFAF ${hasTargets?'Edit Targets':'Set Targets'}</div>
     </div>
     <div class="summary">
     ${ringHTML('kcal',t.kcal,'Kcal')}
@@ -389,26 +389,26 @@ function renderToday(){
     ${ringHTML('fibre',t.fibre,'Fibre')}
   </div></div>`;
   h+=`<div class="sectionhead"><div class="section-title">Today's List</div>
-    <div class="pillbtn ${editMode?'active':''}" onclick="toggleEdit()">â‡… Reorder</div></div>`;
+    <div class="pillbtn ${editMode?'active':''}" onclick="toggleEdit()">\u21C5 Reorder</div></div>`;
 
   tpl.items.forEach((it,idx)=>{
     const f=it.foodId?findFood(it.foodId):null;
     let title,sub,checked,qty,unit;
     if(it.kind==='food'){
       title=f?f.name:'(missing food)'; qty=it.qty; unit=f&&f.basis===1?'ct':'g';
-      checked=L.checked[it.id]; sub=`${qty}${unit} Â· ${r1(macrosFor(it.foodId,qty).kcal)} kcal`;
+      checked=L.checked[it.id]; sub=`${qty}${unit} \u00B7 ${r1(macrosFor(it.foodId,qty).kcal)} kcal`;
     }else if(isPersistent(it.group)){
       title=it.group; qty=it.qty; unit=f&&f.basis===1?'ct':'g';
-      checked=L.checked[it.id]; sub=f?`${f.name} Â· ${qty}${unit} Â· ${r1(macrosFor(it.foodId,qty).kcal)} kcal`:'Tap to pick';
+      checked=L.checked[it.id]; sub=f?`${f.name} \u00B7 ${qty}${unit} \u00B7 ${r1(macrosFor(it.foodId,qty).kcal)} kcal`:'Tap to pick';
     }else{
       const sel=L.choiceSel[it.id]; const sf=sel&&sel.foodId?findFood(sel.foodId):null;
       title=it.group; qty=sel?sel.qty:0; unit=sf&&sf.basis===1?'ct':'g';
-      checked=!!(sel&&sel.foodId); sub=sf?`${sf.name} Â· ${qty}${unit} Â· ${r1(macrosFor(sel.foodId,qty).kcal)} kcal`:'Not picked yet';
+      checked=!!(sel&&sel.foodId); sub=sf?`${sf.name} \u00B7 ${qty}${unit} \u00B7 ${r1(macrosFor(sel.foodId,qty).kcal)} kcal`:'Not picked yet';
     }
     const rightControl = editMode
-      ? `<div class="orderbtns"><button onclick="event.stopPropagation();moveItem(${idx},-1)">â–²</button><button onclick="event.stopPropagation();moveItem(${idx},1)">â–¼</button></div>
-         ${it.kind==='food'?`<button class="rmbtn" onclick="event.stopPropagation();removeItem('${it.id}')">âœ•</button>`:''}`
-      : `<div class="checkring ${checked?'on':''}" onclick="event.stopPropagation();quickToggle('${it.id}','${it.kind}')"><span class="tick">âœ“</span></div>`;
+      ? `<div class="orderbtns"><button onclick="event.stopPropagation();moveItem(${idx},-1)">\u25B2</button><button onclick="event.stopPropagation();moveItem(${idx},1)">\u25BC</button></div>
+         ${it.kind==='food'?`<button class="rmbtn" onclick="event.stopPropagation();removeItem('${it.id}')">\u2715</button>`:''}`
+      : `<div class="checkring ${checked?'on':''}" onclick="event.stopPropagation();quickToggle('${it.id}','${it.kind}')"><span class="tick">\u2713</span></div>`;
     const iconItem={foodId:it.kind==='food'?it.foodId:(f?it.foodId:null),group:it.group};
     h+=`<div class="foodcard" onclick="openItemSheet('${it.id}')">
       <div class="iconbox"${iconboxStyle(colorFor(iconItem))}>${iconFor(iconItem)}</div>
@@ -428,12 +428,12 @@ function quickToggle(itemId,kind){
   else{
     const it=tpl.items.find(i=>i.id===itemId);
     if(isPersistent(it.group)){
-      if(!it.foodId){openItemSheet(itemId);return;} // nothing picked for this group yet â€” open the picker
+      if(!it.foodId){openItemSheet(itemId);return;} // nothing picked for this group yet \u2014 open the picker
       L.checked[itemId]=!L.checked[itemId]; // picked food stays; this just marks today eaten/not-eaten
     }else{
       const sel=L.choiceSel[itemId];
-      if(!sel||!sel.foodId){openItemSheet(itemId);return;} // nothing picked today â€” open the picker
-      sel.foodId=null; sel.qty=0; // already picked â€” tapping the ring un-picks it for today
+      if(!sel||!sel.foodId){openItemSheet(itemId);return;} // nothing picked today \u2014 open the picker
+      sel.foodId=null; sel.qty=0; // already picked \u2014 tapping the ring un-picks it for today
     }
   }
   save(LS_LOG,logs); renderToday();
@@ -466,7 +466,7 @@ function openItemSheet(itemId){
     const persistent=isPersistent(it.group);
     const curSel=persistent?{foodId:it.foodId,qty:it.qty}:L.choiceSel[it.id];
     // sheetCtx.picked/qty is the in-progress selection for this open sheet;
-    // it only seeds from storage here, on the initial open â€” later taps
+    // it only seeds from storage here, on the initial open \u2014 later taps
     // inside the sheet (pickChoice) must update this object in place, never
     // re-derive it from storage, or every tap would just be discarded.
     sheetCtx={itemId,picked:curSel.foodId,qty:curSel.qty};
@@ -512,12 +512,12 @@ function foodCardHTML(f){
       <div class="iconbox"${iconboxStyle(f.color)}>${iconFor({foodId:f.id})}</div>
       <div class="foodinfo">
         <div class="t">${f.name}</div>
-        <div class="s">${unit}${f.note?' Â· '+f.note:''}</div>
+        <div class="s">${unit}${f.note?' \u00B7 '+f.note:''}</div>
         <div class="macrorow"><span style="color:var(--kcal)">${f.kcal}kcal</span><span style="color:var(--carbs)">C${f.carbs}</span><span style="color:var(--protein)">P${f.protein}</span><span style="color:var(--fat)">F${f.fat}</span><span style="color:var(--fibre)">Fb${f.fibre}</span></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px">
-        <button class="rmbtn" style="color:var(--accent)" onclick="openForm('${f.id}')">âœŽ</button>
-        <button class="rmbtn" onclick="deleteFood('${f.id}')">ðŸ—‘</button>
+        <button class="rmbtn" style="color:var(--accent)" onclick="openForm('${f.id}')">\u270E</button>
+        <button class="rmbtn" onclick="deleteFood('${f.id}')">\uD83D\uDDD1</button>
       </div>
     </div>`;
 }
@@ -547,7 +547,7 @@ function renderDB(){
       </div>`;
     }else{
       h+=`<div class="sectionhead"><div class="section-title">${g} <span class="badge">${items.length}</span></div>
-        <button class="rmbtn" style="color:var(--accent);font-size:15px" onclick="editingGroup='${jsEsc(g)}';renderDB();">âœŽ Rename</button></div>`;
+        <button class="rmbtn" style="color:var(--accent);font-size:15px" onclick="editingGroup='${jsEsc(g)}';renderDB();">\u270E Rename</button></div>`;
     }
     h+=`<div style="border-left:2px solid var(--border);margin-left:6px;padding-left:10px">`;
     items.forEach(f=>{ h+=foodCardHTML(f); if(editingId===f.id) h+=foodFormHTML(f); });
@@ -594,7 +594,7 @@ function foodFormHTML(f){
   return `<div class="summary-card" id="food-form-${formId}">
     <div class="formgrid">
       <div style="grid-column:1/3"><label>Name</label><input id="ff-name" type="text" value="${f?f.name:''}"></div>
-      <div><label>Icon (emoji)</label><input id="ff-icon" type="text" maxlength="4" value="${f&&f.icon?f.icon:''}" placeholder="ðŸ½ï¸"></div>
+      <div><label>Icon (emoji)</label><input id="ff-icon" type="text" maxlength="4" value="${f&&f.icon?f.icon:''}" placeholder="\uD83C\uDF7D\uFE0F"></div>
       <div><label>Color</label><input id="ff-color" type="color" value="${f&&f.color?f.color:'#8b6bff'}" style="padding:2px;height:37px"></div>
       <div><label>Group (optional)</label><input id="ff-group" list="grouplist" type="text" value="${f?f.group:''}" placeholder="e.g. Curry">
         <datalist id="grouplist">${groupNames.map(g=>`<option value="${g}">`).join('')}</datalist></div>
@@ -685,10 +685,10 @@ function renderHistory(){
   if(dates.length>0) h+=trendCardHTML();
   if(dates.length===0)h+='<div class="empty">No days logged yet.</div>';
   dates.forEach(d=>{
-    const t=dayTotals(d); const label=d===todayStr()?'Today Â· '+d:d;
+    const t=dayTotals(d); const label=d===todayStr()?'Today \u00B7 '+d:d;
     h+=`<div class="summary-card">
       <div class="sectionhead" style="margin:0 0 10px"><div style="font-weight:700">${label}</div>
-      <button class="rmbtn" onclick="deleteDay('${d}')">ðŸ—‘</button></div>
+      <button class="rmbtn" onclick="deleteDay('${d}')">\uD83D\uDDD1</button></div>
       <div class="summary">
         ${ringHTML('kcal',t.kcal,'Kcal')}
         ${ringHTML('carbs',t.carbs,'Carbs')}
