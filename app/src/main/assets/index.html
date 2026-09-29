@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" id="manifest-link">
+<link rel="apple-touch-icon" id="apple-icon">
+<title>Macro Tracker</title>
+<style>
+:root{
+  --bg:#0b0b0f;--card:#17171d;--card2:#1e1e26;--text:#f3f3f7;--muted:#8a8a96;--border:#26262f;
+  --accent:#8b6bff;--accentDim:rgba(139,107,255,.16);
+  --kcal:#f5a524;--carbs:#3b9eff;--protein:#f5518c;--fat:#e0a527;--fibre:#22c58b;--radius:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+header{position:sticky;top:0;background:var(--bg);z-index:10;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
+h1{font-size:22px;margin:0 0 12px;font-weight:800;letter-spacing:-.3px}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:4px}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:11px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none}
+.tab.active{background:var(--accent);color:#fff}
+main{padding:14px 16px 40px;max-width:520px;margin:0 auto}
+.summary-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.summary{display:flex;flex-wrap:wrap;gap:8px}
+.ringwrap{flex:1;min-width:58px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.ring{position:relative;width:56px;height:56px;flex-shrink:0}
+.ring svg{position:absolute;top:0;left:0}
+.ringval{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;text-align:center;line-height:1.1}
+.ringlabel{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;text-align:center;white-space:nowrap}
+.ringgoal{color:var(--muted);text-transform:none;font-weight:600;font-size:9.5px}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
+.section-title{font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700}
+.pillbtn{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.pillbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.foodcard{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:11px 12px;margin-bottom:10px;cursor:pointer}
+.iconbox{width:42px;height:42px;border-radius:12px;background:var(--accentDim);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.foodinfo{flex:1;min-width:0}
+.foodinfo .t{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foodinfo .s{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.checkring{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.checkring.on{background:var(--accent)}
+.checkring .tick{color:#fff;font-weight:900;font-size:14px;opacity:0}
+.checkring.on .tick{opacity:1}
+.orderbtns{display:flex;flex-direction:column;gap:2px}
+.orderbtns button{background:var(--card2);border:none;color:var(--text);width:26px;height:22px;border-radius:6px;font-size:11px}
+.rmbtn{background:none;border:none;color:#e0546e;font-size:18px;padding:0 4px}
+.addcard{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1.5px dashed var(--border);border-radius:16px;padding:13px;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.overlay.hidden{display:none}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow-y:auto}
+.sheet h3{margin:0 0 12px;font-size:17px}
+.optrow{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:6px;background:var(--card2)}
+.optrow.sel{outline:2px solid var(--accent)}
+.optrow .t{flex:1;font-size:14.5px;font-weight:600}
+.qtyline{display:flex;align-items:center;gap:8px;margin-top:12px}
+.qtyline input{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px;font-size:15px}
+.qtyline span{font-size:13px;color:var(--muted)}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:14px}
+.btn.secondary{background:var(--card2);color:var(--text)}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{margin-top:10px}
+input,select{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px;font-size:14px;width:100%}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.formgrid label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:3px}
+.badge{display:inline-block;background:var(--accentDim);color:var(--accent);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px}
+.macrorow{display:flex;gap:9px;font-size:11.5px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.empty{color:var(--muted);font-size:13px;font-style:italic;padding:10px 2px}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+    <h1 style="margin:0">ðŸ¥— Macro Tracker</h1>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="pillbtn" onclick="openBackupSheet()">â‡µ Backup</button>
+      <button id="installBtn" class="pillbtn active hidden" onclick="doInstall()">â¬‡ Install</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="today">Today</div>
+    <div class="tab" data-tab="db">Database</div>
+    <div class="tab" data-tab="history">History</div>
+  </div>
+</header>
+<main>
+  <section id="tab-today"></section>
+  <section id="tab-db" class="hidden"></section>
+  <section id="tab-history" class="hidden"></section>
+</main>
+<div class="overlay hidden" id="overlay"><div class="sheet" id="sheet"></div></div>
+<input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="handleImportFile(event)">
+<script>
+/* ---------- PWA install setup ---------- */
+try{
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" rx="110" fill="#8b6bff"/><text x="50%" y="58%" font-size="300" text-anchor="middle" dominant-baseline="middle">ðŸ¥—</text></svg>`;
+  const iconUri='data:image/svg+xml,'+encodeURIComponent(svg);
+  const manifest={name:'Macro Tracker',short_name:'Macros',start_url:'.',scope:'.',display:'standalone',
+    background_color:'#0b0b0f',theme_color:'#0b0b0f',
+    icons:[{src:iconUri,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  document.getElementById('manifest-link').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  document.getElementById('apple-icon').href=iconUri;
+  if('serviceWorker' in navigator){
+    const sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{});";
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});
+  }
+}catch(e){}
+
+/* ---------- install prompt ---------- */
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const btn=document.getElementById('installBtn'); if(btn) btn.classList.remove('hidden');
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('installBtn'); if(btn) btn.classList.add('hidden');
+});
+async function doInstall(){
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn').classList.add('hidden');
+}
+
+/* ---------- storage ---------- */
+const LS_DB='mt_db2',LS_TPL='mt_tpl2',LS_LOG='mt_logs2',LS_GRP='mt_groups2',LS_TARGETS='mt_targets2';
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){return fmtDate(new Date());}
+function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function load(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch(e){return f;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+/* ---------- BACKUP (export / import) ---------- */
+function openBackupSheet(){
+  document.getElementById('sheet').innerHTML=`<h3>â‡µ Backup</h3>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">
+      Export everything â€” your foods, today's list (order &amp; amounts), groups, targets, and full history â€” into one file. Importing that file later fully replaces what's currently on this device.
+    </div>
+    <div class="btnrow">
+      <button class="btn" onclick="exportData()">â¬‡ Export to file</button>
+      <button class="btn secondary" onclick="document.getElementById('importFile').click()">â¬† Import from file</button>
+    </div>
+    <div class="btnrow"><button class="btn secondary" onclick="closeSheet()">Close</button></div>`;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function exportData(){
+  const payload={app:'macro-tracker',version:1,exportedAt:new Date().toISOString(),db,tpl,groups,logs,targets};
+  const jsonStr=JSON.stringify(payload,null,2);
+  const filename=`macro-tracker-backup-${todayStr()}.json`;
+
+  if(window.Android && window.Android.saveFile){
+    // Running inside the native app: blob/<a download> links don't work in a WebView,
+    // so hand the file to Android directly and let it save into Downloads.
+    const base64=btoa(unescape(encodeURIComponent(jsonStr)));
+    window.Android.saveFile(filename, base64);
+    closeSheet();
+    return;
+  }
+
+  // Fallback for viewing this file in a regular desktop/mobile browser.
+  const blob=new Blob([jsonStr],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  closeSheet();
+}
+function handleImportFile(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let data;
+    try{ data=JSON.parse(reader.result); }
+    catch(e){ alert('That file is not valid JSON.'); event.target.value=''; return; }
+    if(!data||!Array.isArray(data.db)||!data.tpl||!Array.isArray(data.tpl.items)){
+      alert('That doesn\'t look like a Macro Tracker backup file.'); event.target.value=''; return;
+    }
+    const ok=confirm('This replaces ALL current foods, today\'s list, groups, targets, and history on this device with the imported file. This can\'t be undone. Continue?');
+    event.target.value='';
+    if(!ok)return;
+    db=data.db||[]; tpl=data.tpl||{items:[]}; groups=data.groups||{}; logs=data.logs||{}; targets=data.targets||null;
+    save(LS_DB,db); save(LS_TPL,tpl); save(LS_GRP,groups); save(LS_LOG,logs); save(LS_TARGETS,targets);
+    closeSheet();
+    renderToday(); renderDB(); renderHistory();
+    alert('Import complete.');
+  };
+  reader.readAsText(file);
+}
+
+const seedDB=[
+ {id:'cornflakes',name:'Corn Flakes',group:'',basis:100,kcal:378,carbs:86.9,protein:6.7,fat:1,fibre:2.5,note:'User-provided'},
+ {id:'redbanana',name:'Red Banana',group:'',basis:100,kcal:89,carbs:22.84,protein:1.09,fat:0.33,fibre:2.6,note:'FatSecret'},
+ {id:'dates',name:'Dates',group:'',basis:100,kcal:318,carbs:78,protein:1.5,fat:0,fibre:8.67,note:'User-provided'},
+ {id:'chicken',name:'Bone-in Chicken (raw, 20% bone)',group:'',basis:100,kcal:172,carbs:0,protein:14.88,fat:12.08,fibre:0,note:'USDA, adj. 20% bone'},
+ {id:'egg',name:'Egg (large)',group:'',basis:1,kcal:72,carbs:0.4,protein:6.3,fat:4.8,fibre:0,note:'USDA, per egg'},
+ {id:'pb',name:'Peanut Butter',group:'',basis:100,kcal:605,carbs:22,protein:26,fat:44.6,fibre:7.2,note:'User-provided'},
+ {id:'peanuts',name:'Roasted Peanuts',group:'',basis:100,kcal:587,carbs:21,protein:24,fat:50,fibre:8,note:'USDA dry-roasted'},
+ {id:'carrot',name:'Carrot (raw)',group:'',basis:100,kcal:41,carbs:9.6,protein:0.9,fat:0.2,fibre:2.8,note:'USDA raw'},
+ {id:'ricebasmati',name:'Basmati',group:'Cooked Rice',basis:100,kcal:121,carbs:25.22,protein:3.54,fat:0.38,fibre:0.4,note:'FatSecret cooked'},
+ {id:'riceponni',name:'Ponni',group:'Cooked Rice',basis:100,kcal:123,carbs:26.1,protein:2.9,fat:0.4,fibre:0.9,note:'USDA parboiled cooked'},
+ {id:'ricematta',name:'Unda Matta',group:'Cooked Rice',basis:100,kcal:84,carbs:18.54,protein:1.51,fat:0.14,fibre:0.6,note:'FatSecret cooked'},
+];
+const seedItems=[
+ {id:'it_cornflakes',kind:'food',foodId:'cornflakes',qty:50},
+ {id:'it_redbanana',kind:'food',foodId:'redbanana',qty:120},
+ {id:'it_dates',kind:'food',foodId:'dates',qty:30},
+ {id:'it_chicken',kind:'food',foodId:'chicken',qty:250},
+ {id:'it_egg',kind:'food',foodId:'egg',qty:3},
+ {id:'it_pb',kind:'food',foodId:'pb',qty:15},
+ {id:'it_peanuts',kind:'food',foodId:'peanuts',qty:30},
+ {id:'it_carrot',kind:'food',foodId:'carrot',qty:80},
+ {id:'it_rice',kind:'choice',group:'Cooked Rice',foodId:'ricebasmati',qty:150},
+ {id:'it_breakfast',kind:'choice',group:'Breakfast',foodId:null,qty:0},
+ {id:'it_curry',kind:'choice',group:'Curry',foodId:null,qty:0},
+ {id:'it_dinner',kind:'choice',group:'Dinner',foodId:null,qty:0},
+];
+const seedGroups={'Cooked Rice':true,'Breakfast':false,'Curry':false,'Dinner':false};
+
+let db=load(LS_DB,null); if(!db){db=seedDB;save(LS_DB,db);}
+let tpl=load(LS_TPL,null); if(!tpl){tpl={items:seedItems};save(LS_TPL,tpl);}
+let groups=load(LS_GRP,null); if(!groups){groups=seedGroups;save(LS_GRP,groups);}
+let logs=load(LS_LOG,{});
+let targets=load(LS_TARGETS,null); // {kcal,carbs,protein,fat,fibre} or null if unset
+let editMode=false;
+
+function findFood(id){return db.find(f=>f.id===id);}
+function isPersistent(g){return true;} // every group now behaves like Cooked Rice â€” the picked food sticks across days; the per-day tick only marks "eaten today", it never clears the pick
+function macrosFor(id,qty){const f=findFood(id);if(!f||!qty)return{kcal:0,carbs:0,protein:0,fat:0,fibre:0};const k=qty/f.basis;
+  return{kcal:f.kcal*k,carbs:f.carbs*k,protein:f.protein*k,fat:f.fat*k,fibre:f.fibre*k};}
+function addM(a,b){a.kcal+=b.kcal;a.carbs+=b.carbs;a.protein+=b.protein;a.fat+=b.fat;a.fibre+=b.fibre;}
+function iconFor(item){
+  const f=item.foodId?findFood(item.foodId):null;
+  if(f){
+    if(f.icon)return f.icon;
+    const n=f.name.toLowerCase();
+    if(n.includes('egg'))return 'ðŸ¥š'; if(n.includes('chicken'))return 'ðŸ—'; if(n.includes('rice'))return 'ðŸš';
+    if(n.includes('banana'))return 'ðŸŒ'; if(n.includes('date'))return 'ðŸŒ´'; if(n.includes('corn'))return 'ðŸ¥£';
+    if(n.includes('peanut butter'))return 'ðŸ¥œ'; if(n.includes('peanut'))return 'ðŸ¥œ'; if(n.includes('carrot'))return 'ðŸ¥•';
+    return 'ðŸ½ï¸';}
+  const g=item.group||''; if(g==='Cooked Rice')return 'ðŸš'; if(g==='Breakfast')return 'ðŸ³'; if(g==='Curry')return 'ðŸ›'; if(g==='Dinner')return 'ðŸ½ï¸';
+  return 'ðŸ½ï¸'; // any other group with nothing picked yet â€” generic plate, not a "?"
+}
+function colorFor(item){
+  const f=item.foodId?findFood(item.foodId):null;
+  return (f&&f.color)?f.color:null; // null = use the default accent tint
+}
+function iconboxStyle(color){
+  return color?` style="background:${color}2b;color:${color}"`:'';
+}
+
+function ensureDay(date){
+  if(!logs[date])logs[date]={checked:{},choiceSel:{}};
+  const L=logs[date];
+  tpl.items.forEach(it=>{
+    if(it.kind==='food'){ if(L.checked[it.id]===undefined)L.checked[it.id]=false; }
+    else if(isPersistent(it.group)){ if(L.checked[it.id]===undefined)L.checked[it.id]=false; }
+    else{ if(!L.choiceSel[it.id])L.choiceSel[it.id]={foodId:null,qty:0}; }
+  });
+  save(LS_LOG,logs); return L;
+}
+function dayTotals(date){
+  const L=logs[date]||{checked:{},choiceSel:{}}; const t={kcal:0,carbs:0,protein:0,fat:0,fibre:0};
+  tpl.items.forEach(it=>{
+    if(it.kind==='food'){ if(L.checked[it.id]) addM(t,macrosFor(it.foodId,it.qty)); }
+    else if(isPersistent(it.group)){ if(L.checked[it.id]) addM(t,macrosFor(it.foodId,it.qty)); }
+    else{ const s=L.choiceSel[it.id]; if(s&&s.foodId) addM(t,macrosFor(s.foodId,s.qty)); }
+  });
+  return t;
+}
+const r1=n=>Math.round(n*10)/10;
+function closeSheet(){document.getElementById('overlay').classList.add('hidden');}
+
+/* ---------- STREAK ---------- */
+// If a kcal target is set, a day "counts" when logged kcal lands within 10% of
+// it (close enough to call it a hit). Otherwise, any logging at all counts.
+function isDayDone(dateStr){
+  const t=dayTotals(dateStr);
+  if(targets&&targets.kcal>0){
+    if(t.kcal<=0)return false;
+    const pct=t.kcal/targets.kcal;
+    return pct>=0.9&&pct<=1.1;
+  }
+  return t.kcal>0||t.carbs>0||t.protein>0||t.fat>0||t.fibre>0;
+}
+function calcStreaks(){
+  const today=todayStr();
+  const todayDone=isDayDone(today);
+  let current=todayDone?1:0;
+  const cursor=new Date();
+  cursor.setDate(cursor.getDate()-1); // start checking from yesterday
+  while(isDayDone(fmtDate(cursor))){ current++; cursor.setDate(cursor.getDate()-1); }
+
+  // longest streak ever, scanning all logged dates
+  const doneDates=Object.keys(logs).filter(isDayDone).sort();
+  let longest=0,run=0,prev=null;
+  doneDates.forEach(ds=>{
+    if(prev){
+      const diffDays=Math.round((new Date(ds+'T00:00:00')-new Date(prev+'T00:00:00'))/86400000);
+      run=(diffDays===1)?run+1:1;
+    }else run=1;
+    longest=Math.max(longest,run); prev=ds;
+  });
+  longest=Math.max(longest,current);
+  return {current,longest,todayDone};
+}
+
+function ringHTML(key,value,label){
+  const goal=targets?targets[key]:null;
+  const size=56,stroke=6,rad=(size-stroke)/2,circ=2*Math.PI*rad;
+  const pct=goal>0?Math.max(0,Math.min(1,value/goal)):0;
+  const dash=(pct*circ).toFixed(1),gap=(circ-pct*circ).toFixed(1);
+  const over=goal>0&&value>goal*1.1;
+  return `<div class="ringwrap">
+    <div class="ring">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <circle cx="${size/2}" cy="${size/2}" r="${rad}" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>
+        ${goal>0?`<circle cx="${size/2}" cy="${size/2}" r="${rad}" fill="none" stroke="var(--${key})" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" transform="rotate(-90 ${size/2} ${size/2})"/>`:''}
+      </svg>
+      <div class="ringval"${over?' style="color:#e0546e"':''}>${r1(value)}</div>
+    </div>
+    <div class="ringlabel">${label}${goal>0?`<div class="ringgoal">/ ${goal}</div>`:''}</div>
+  </div>`;
+}
+/* ---------- TARGETS ---------- */
+function openTargetsSheet(){
+  const t=targets||{};
+  document.getElementById('sheet').innerHTML=`<h3>ðŸŽ¯ Daily Targets</h3>
+    <div class="formgrid">
+      <div><label>Kcal</label><input id="tg-kcal" type="number" step="any" value="${t.kcal||''}" placeholder="e.g. 2200"></div>
+      <div><label>Carbs (g)</label><input id="tg-carbs" type="number" step="any" value="${t.carbs||''}"></div>
+      <div><label>Protein (g)</label><input id="tg-protein" type="number" step="any" value="${t.protein||''}"></div>
+      <div><label>Fat (g)</label><input id="tg-fat" type="number" step="any" value="${t.fat||''}"></div>
+      <div><label>Fibre (g)</label><input id="tg-fibre" type="number" step="any" value="${t.fibre||''}"></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:10px">Leave a field blank to skip tracking it. Your kcal target also decides your daily streak.</div>
+    <div class="btnrow">
+      <button class="btn" onclick="saveTargets()">Save</button>
+      <button class="btn secondary" onclick="closeSheet()">Cancel</button>
+    </div>
+    ${targets?`<button class="btn secondary" onclick="clearTargets()" style="color:#e0546e">Clear Targets</button>`:''}`;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function saveTargets(){
+  const v=id=>{const n=parseFloat(document.getElementById(id).value);return n>0?n:null;};
+  targets={kcal:v('tg-kcal'),carbs:v('tg-carbs'),protein:v('tg-protein'),fat:v('tg-fat'),fibre:v('tg-fibre')};
+  if(!Object.values(targets).some(x=>x)) targets=null;
+  save(LS_TARGETS,targets); closeSheet(); renderToday();
+}
+function clearTargets(){targets=null; save(LS_TARGETS,targets); closeSheet(); renderToday();}
+
+/* ---------- TODAY ---------- */
+function renderToday(){
+  const date=todayStr(); const L=ensureDay(date); const t=dayTotals(date);
+  const streak=calcStreaks();
+  const hasTargets=!!(targets&&targets.kcal>0);
+  const streakMsg=streak.todayDone?(hasTargets?'On target today â€” keep it going':'Logged today â€” keep it going')
+    :(hasTargets?'Hit your kcal target today to keep your streak':'Log something today to keep your streak');
+  let h=`<div class="summary-card" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+    <div style="font-size:30px;line-height:1">ðŸ”¥</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:19px;font-weight:800">${streak.current} day${streak.current===1?'':'s'}</div>
+      <div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakMsg}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase">Best</div>
+      <div style="font-size:16px;font-weight:800">${streak.longest}</div>
+    </div>
+  </div>`;
+  h+=`<div class="summary-card"><div class="sectionhead" style="margin:0 0 10px">
+      <div class="section-title">Today's Macros</div>
+      <div class="pillbtn ${hasTargets?'active':''}" onclick="openTargetsSheet()">ðŸŽ¯ ${hasTargets?'Edit Targets':'Set Targets'}</div>
+    </div>
+    <div class="summary">
+    ${ringHTML('kcal',t.kcal,'Kcal')}
+    ${ringHTML('carbs',t.carbs,'Carbs')}
+    ${ringHTML('protein',t.protein,'Protein')}
+    ${ringHTML('fat',t.fat,'Fat')}
+    ${ringHTML('fibre',t.fibre,'Fibre')}
+  </div></div>`;
+  h+=`<div class="sectionhead"><div class="section-title">Today's List</div>
+    <div class="pillbtn ${editMode?'active':''}" onclick="toggleEdit()">â‡… Reorder</div></div>`;
+
+  tpl.items.forEach((it,idx)=>{
+    const f=it.foodId?findFood(it.foodId):null;
+    let title,sub,checked,qty,unit;
+    if(it.kind==='food'){
+      title=f?f.name:'(missing food)'; qty=it.qty; unit=f&&f.basis===1?'ct':'g';
+      checked=L.checked[it.id]; sub=`${qty}${unit} Â· ${r1(macrosFor(it.foodId,qty).kcal)} kcal`;
+    }else if(isPersistent(it.group)){
+      title=it.group; qty=it.qty; unit=f&&f.basis===1?'ct':'g';
+      checked=L.checked[it.id]; sub=f?`${f.name} Â· ${qty}${unit} Â· ${r1(macrosFor(it.foodId,qty).kcal)} kcal`:'Tap to pick';
+    }else{
+      const sel=L.choiceSel[it.id]; const sf=sel&&sel.foodId?findFood(sel.foodId):null;
+      title=it.group; qty=sel?sel.qty:0; unit=sf&&sf.basis===1?'ct':'g';
+      checked=!!(sel&&sel.foodId); sub=sf?`${sf.name} Â· ${qty}${unit} Â· ${r1(macrosFor(sel.foodId,qty).kcal)} kcal`:'Not picked yet';
+    }
+    const rightControl = editMode
+      ? `<div class="orderbtns"><button onclick="event.stopPropagation();moveItem(${idx},-1)">â–²</button><button onclick="event.stopPropagation();moveItem(${idx},1)">â–¼</button></div>
+         ${it.kind==='food'?`<button class="rmbtn" onclick="event.stopPropagation();removeItem('${it.id}')">âœ•</button>`:''}`
+      : `<div class="checkring ${checked?'on':''}" onclick="event.stopPropagation();quickToggle('${it.id}','${it.kind}')"><span class="tick">âœ“</span></div>`;
+    const iconItem={foodId:it.kind==='food'?it.foodId:(f?it.foodId:null),group:it.group};
+    h+=`<div class="foodcard" onclick="openItemSheet('${it.id}')">
+      <div class="iconbox"${iconboxStyle(colorFor(iconItem))}>${iconFor(iconItem)}</div>
+      <div class="foodinfo"><div class="t">${title}</div><div class="s">${sub}</div></div>
+      ${rightControl}
+    </div>`;
+  });
+  if(!editMode) h+=`<div class="addcard" onclick="openAddFood()">+ Add a food to your list</div>`;
+  document.getElementById('tab-today').innerHTML=h;
+}
+function toggleEdit(){editMode=!editMode;renderToday();}
+function moveItem(idx,dir){const j=idx+dir; if(j<0||j>=tpl.items.length)return; const a=tpl.items; [a[idx],a[j]]=[a[j],a[idx]]; save(LS_TPL,tpl); renderToday();}
+function removeItem(id){tpl.items=tpl.items.filter(i=>i.id!==id); save(LS_TPL,tpl); renderToday();}
+function quickToggle(itemId,kind){
+  const date=todayStr(); const L=ensureDay(date);
+  if(kind==='food'){ L.checked[itemId]=!L.checked[itemId]; }
+  else{
+    const it=tpl.items.find(i=>i.id===itemId);
+    if(isPersistent(it.group)){
+      if(!it.foodId){openItemSheet(itemId);return;} // nothing picked for this group yet â€” open the picker
+      L.checked[itemId]=!L.checked[itemId]; // picked food stays; this just marks today eaten/not-eaten
+    }else{
+      const sel=L.choiceSel[itemId];
+      if(!sel||!sel.foodId){openItemSheet(itemId);return;} // nothing picked today â€” open the picker
+      sel.foodId=null; sel.qty=0; // already picked â€” tapping the ring un-picks it for today
+    }
+  }
+  save(LS_LOG,logs); renderToday();
+}
+function openAddFood(){
+  const used=new Set(tpl.items.filter(i=>i.kind==='food').map(i=>i.foodId));
+  const avail=db.filter(f=>f.group===''&&!used.has(f.id));
+  let h=`<h3>Add a Food</h3>`;
+  if(avail.length===0)h+=`<div class="empty">All standalone foods are already on your list. Add new ones in Database.</div>`;
+  avail.forEach(f=>{h+=`<div class="optrow" onclick="addFoodItem('${f.id}')"><div class="t">${f.name}</div></div>`;});
+  h+=`<button class="btn secondary" onclick="closeSheet()">Cancel</button>`;
+  document.getElementById('sheet').innerHTML=h; document.getElementById('overlay').classList.remove('hidden');
+}
+function addFoodItem(foodId){
+  const f=findFood(foodId);
+  tpl.items.push({id:uid(),kind:'food',foodId,qty:f.basis===1?1:100});
+  save(LS_TPL,tpl); closeSheet(); renderToday();
+}
+let sheetCtx=null;
+function openItemSheet(itemId){
+  const it=tpl.items.find(i=>i.id===itemId); if(!it)return;
+  const date=todayStr(); const L=ensureDay(date);
+  if(it.kind==='food'){
+    sheetCtx={itemId};
+    const f=findFood(it.foodId); const unit=f.basis===1?'count':'grams';
+    document.getElementById('sheet').innerHTML=`<h3>${f.name}</h3>
+      <div class="qtyline"><input type="number" id="sheetqty" step="any" value="${it.qty}"><span>${unit}</span></div>
+      <div class="btnrow"><button class="btn" onclick="saveFoodQty()">Save</button><button class="btn secondary" onclick="closeSheet()">Cancel</button></div>`;
+  }else{
+    const persistent=isPersistent(it.group);
+    const curSel=persistent?{foodId:it.foodId,qty:it.qty}:L.choiceSel[it.id];
+    // sheetCtx.picked/qty is the in-progress selection for this open sheet;
+    // it only seeds from storage here, on the initial open â€” later taps
+    // inside the sheet (pickChoice) must update this object in place, never
+    // re-derive it from storage, or every tap would just be discarded.
+    sheetCtx={itemId,picked:curSel.foodId,qty:curSel.qty};
+    renderChoiceSheet();
+  }
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function renderChoiceSheet(){
+  const it=tpl.items.find(i=>i.id===sheetCtx.itemId); if(!it)return;
+  const opts=db.filter(f=>f.group===it.group);
+  let h=`<h3>${it.group}</h3>`;
+  if(opts.length===0)h+=`<div class="empty">No ${it.group} options yet. Add some in Database.</div>`;
+  h+=`<div class="optrow ${!sheetCtx.picked?'sel':''}" onclick="pickChoice(null)"><div class="t">None</div></div>`;
+  opts.forEach(f=>{h+=`<div class="optrow ${sheetCtx.picked===f.id?'sel':''}" onclick="pickChoice('${f.id}')"><div class="t">${f.name}</div></div>`;});
+  h+=`<div class="qtyline"><input type="number" id="sheetqty" step="any" value="${sheetCtx.qty||''}"><span>grams / count</span></div>
+    <div class="btnrow"><button class="btn" onclick="saveChoice()">Save</button><button class="btn secondary" onclick="closeSheet()">Cancel</button></div>`;
+  document.getElementById('sheet').innerHTML=h;
+}
+function saveFoodQty(){
+  const it=tpl.items.find(i=>i.id===sheetCtx.itemId); it.qty=parseFloat(document.getElementById('sheetqty').value)||0;
+  save(LS_TPL,tpl); closeSheet(); renderToday();
+}
+function pickChoice(foodId){
+  const qEl=document.getElementById('sheetqty');
+  if(qEl && parseFloat(qEl.value)>0) sheetCtx.qty=parseFloat(qEl.value); // keep whatever qty was already typed
+  sheetCtx.picked=foodId;
+  if(foodId && !sheetCtx.qty) sheetCtx.qty=findFood(foodId).basis===1?1:100;
+  renderChoiceSheet();
+}
+function saveChoice(){
+  const it=tpl.items.find(i=>i.id===sheetCtx.itemId); const qty=parseFloat(document.getElementById('sheetqty').value)||0;
+  const date=todayStr(); const L=ensureDay(date);
+  if(isPersistent(it.group)){ it.foodId=sheetCtx.picked; it.qty=qty; save(LS_TPL,tpl); L.checked[it.id]=!!sheetCtx.picked; }
+  else{ L.choiceSel[it.id]={foodId:sheetCtx.picked,qty}; }
+  save(LS_LOG,logs); closeSheet(); renderToday();
+}
+
+/* ---------- DATABASE ---------- */
+let editingId=null; // food id being edited, or 'new', or null
+function foodCardHTML(f){
+  const unit=f.basis===1?'per item':'per 100g';
+  return `<div class="foodcard" style="cursor:default">
+      <div class="iconbox"${iconboxStyle(f.color)}>${iconFor({foodId:f.id})}</div>
+      <div class="foodinfo">
+        <div class="t">${f.name}</div>
+        <div class="s">${unit}${f.note?' Â· '+f.note:''}</div>
+        <div class="macrorow"><span style="color:var(--kcal)">${f.kcal}kcal</span><span style="color:var(--carbs)">C${f.carbs}</span><span style="color:var(--protein)">P${f.protein}</span><span style="color:var(--fat)">F${f.fat}</span><span style="color:var(--fibre)">Fb${f.fibre}</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="rmbtn" style="color:var(--accent)" onclick="openForm('${f.id}')">âœŽ</button>
+        <button class="rmbtn" onclick="deleteFood('${f.id}')">ðŸ—‘</button>
+      </div>
+    </div>`;
+}
+function renderDB(){
+  let h=`<button class="btn" onclick="openForm()">+ Add Food</button>`;
+  if(editingId==='new') h+=foodFormHTML(null);
+
+  // partition: standalone (no group) vs grouped, preserving first-seen order for groups
+  const standalone=db.filter(f=>!f.group);
+  const groupOrder=[]; const byGroup={};
+  db.forEach(f=>{ if(f.group){ if(!byGroup[f.group]){byGroup[f.group]=[];groupOrder.push(f.group);} byGroup[f.group].push(f); } });
+
+  if(standalone.length){
+    h+=`<div class="sectionhead"><div class="section-title">Standalone Foods (${standalone.length})</div></div>`;
+    standalone.forEach(f=>{ h+=foodCardHTML(f); if(editingId===f.id) h+=foodFormHTML(f); });
+  }
+
+  groupOrder.forEach(g=>{
+    const items=byGroup[g];
+    if(editingGroup===g){
+      h+=`<div class="sectionhead" id="grouprename-${cssEsc(g)}">
+        <input id="gr-name" type="text" value="${g}" style="font-size:13px;font-weight:700;flex:1">
+      </div>
+      <div class="btnrow" style="margin-bottom:10px">
+        <button class="btn" style="margin-top:0" onclick="saveGroupRename('${jsEsc(g)}')">Save</button>
+        <button class="btn secondary" style="margin-top:0" onclick="editingGroup=null;renderDB();">Cancel</button>
+      </div>`;
+    }else{
+      h+=`<div class="sectionhead"><div class="section-title">${g} <span class="badge">${items.length}</span></div>
+        <button class="rmbtn" style="color:var(--accent);font-size:15px" onclick="editingGroup='${jsEsc(g)}';renderDB();">âœŽ Rename</button></div>`;
+    }
+    h+=`<div style="border-left:2px solid var(--border);margin-left:6px;padding-left:10px">`;
+    items.forEach(f=>{ h+=foodCardHTML(f); if(editingId===f.id) h+=foodFormHTML(f); });
+    h+=`</div>`;
+  });
+
+  if(db.length===0) h+=`<div class="empty">No foods yet. Add one above.</div>`;
+  document.getElementById('tab-db').innerHTML=h;
+  if(editingId){
+    const el=document.getElementById('food-form-'+editingId);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  if(editingGroup){
+    const el=document.getElementById('gr-name');
+    if(el){ el.focus(); el.select(); }
+  }
+}
+function jsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function cssEsc(s){return String(s).replace(/[^a-zA-Z0-9_-]/g,'_');}
+let editingGroup=null; // group name currently being renamed
+function saveGroupRename(oldName){
+  const newName=document.getElementById('gr-name').value.trim();
+  editingGroup=null;
+  if(!newName||newName===oldName){ renderDB(); return; }
+  const mergingIntoExisting = (newName in groups) && newName!==oldName;
+  db.forEach(f=>{ if(f.group===oldName) f.group=newName; });
+  tpl.items.forEach(it=>{ if(it.kind==='choice' && it.group===oldName) it.group=newName; });
+  if(mergingIntoExisting){
+    delete groups[oldName]; // keep existing newName entry's persistent flag as-is
+    const seen=new Set();
+    tpl.items=tpl.items.filter(it=>{
+      if(it.kind==='choice' && it.group===newName){ if(seen.has(newName))return false; seen.add(newName); }
+      return true;
+    });
+  }else{
+    groups[newName]=groups[oldName]; delete groups[oldName];
+  }
+  save(LS_DB,db); save(LS_TPL,tpl); save(LS_GRP,groups);
+  renderDB(); renderToday();
+}
+function foodFormHTML(f){
+  const groupNames=Object.keys(groups);
+  const formId=f?f.id:'new';
+  return `<div class="summary-card" id="food-form-${formId}">
+    <div class="formgrid">
+      <div style="grid-column:1/3"><label>Name</label><input id="ff-name" type="text" value="${f?f.name:''}"></div>
+      <div><label>Icon (emoji)</label><input id="ff-icon" type="text" maxlength="4" value="${f&&f.icon?f.icon:''}" placeholder="ðŸ½ï¸"></div>
+      <div><label>Color</label><input id="ff-color" type="color" value="${f&&f.color?f.color:'#8b6bff'}" style="padding:2px;height:37px"></div>
+      <div><label>Group (optional)</label><input id="ff-group" list="grouplist" type="text" value="${f?f.group:''}" placeholder="e.g. Curry">
+        <datalist id="grouplist">${groupNames.map(g=>`<option value="${g}">`).join('')}</datalist></div>
+      <div><label>Basis</label><select id="ff-basis"><option value="100" ${(!f||f.basis===100)?'selected':''}>per 100g</option><option value="1" ${f&&f.basis===1?'selected':''}>per item/count</option></select></div>
+      <div><label>Kcal</label><input id="ff-kcal" type="number" step="any" value="${f?f.kcal:''}"></div>
+      <div><label>Carbs (g)</label><input id="ff-carbs" type="number" step="any" value="${f?f.carbs:''}"></div>
+      <div><label>Protein (g)</label><input id="ff-protein" type="number" step="any" value="${f?f.protein:''}"></div>
+      <div><label>Fat (g)</label><input id="ff-fat" type="number" step="any" value="${f?f.fat:''}"></div>
+      <div><label>Fibre (g)</label><input id="ff-fibre" type="number" step="any" value="${f?f.fibre:''}"></div>
+      <div style="grid-column:1/3"><label>Note / Source</label><input id="ff-note" type="text" value="${f?f.note:''}"></div>
+    </div>
+    <div class="btnrow"><button class="btn" onclick="saveFood('${formId}')">Save</button><button class="btn secondary" onclick="closeForm()">Cancel</button></div>
+  </div>`;
+}
+function openForm(id){ editingId=id||'new'; renderDB(); }
+function closeForm(){editingId=null;renderDB();}
+function saveFood(formId){
+  const scope=document.getElementById('food-form-'+formId);
+  const val=sel=>scope.querySelector(sel).value;
+  const name=val('#ff-name').trim(); if(!name)return;
+  const icon=val('#ff-icon').trim();
+  const color=val('#ff-color');
+  let group=val('#ff-group').trim();
+  const basis=parseFloat(val('#ff-basis'));
+  const kcal=parseFloat(val('#ff-kcal'))||0;
+  const carbs=parseFloat(val('#ff-carbs'))||0;
+  const protein=parseFloat(val('#ff-protein'))||0;
+  const fat=parseFloat(val('#ff-fat'))||0;
+  const fibre=parseFloat(val('#ff-fibre'))||0;
+  const note=val('#ff-note').trim();
+  if(group && !(group in groups)){groups[group]=true; save(LS_GRP,groups);
+    tpl.items.push({id:uid(),kind:'choice',group,foodId:null,qty:0}); save(LS_TPL,tpl);}
+  if(editingId!=='new'){const f=findFood(editingId);Object.assign(f,{name,group,basis,kcal,carbs,protein,fat,fibre,note,icon,color});}
+  else{db.push({id:uid(),name,group,basis,kcal,carbs,protein,fat,fibre,note,icon,color});}
+  save(LS_DB,db); editingId=null; renderDB(); renderToday();
+}
+function deleteFood(id){
+  if(!confirm('Delete this food?'))return;
+  db=db.filter(f=>f.id!==id); save(LS_DB,db);
+  tpl.items=tpl.items.filter(i=>!(i.kind==='food'&&i.foodId===id));
+  tpl.items.forEach(i=>{if(i.foodId===id)i.foodId=null;});
+  save(LS_TPL,tpl); renderDB(); renderToday();
+}
+
+/* ---------- HISTORY / TREND ---------- */
+const WEEKDAY_LETTERS=['S','M','T','W','T','F','S'];
+let trendMetric='kcal';
+function setTrendMetric(m){trendMetric=m;renderHistory();}
+function trendChartSVG(metric){
+  const days=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=fmtDate(d); days.push({ds,wd:d.getDay(),value:dayTotals(ds)[metric]}); }
+  const goal=targets?targets[metric]:null;
+  const maxVal=Math.max(...days.map(d=>d.value),goal||0,1);
+  const W=320,H=112,padTop=18,padBottom=20,chartH=H-padTop-padBottom,barW=28;
+  const gap=(W-barW*7)/8;
+  const today=todayStr();
+  let bars='';
+  days.forEach((d,i)=>{
+    const x=gap+i*(barW+gap);
+    const h=Math.max(2,(d.value/maxVal)*chartH);
+    const y=padTop+chartH-h;
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" rx="5" fill="var(--${metric})" opacity="${d.ds===today?1:0.5}"/>`;
+    bars+=`<text x="${(x+barW/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--muted)">${d.value>0?r1(d.value):''}</text>`;
+    bars+=`<text x="${(x+barW/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)" font-weight="700">${WEEKDAY_LETTERS[d.wd]}</text>`;
+  });
+  let goalLine='';
+  if(goal>0){
+    const gy=padTop+chartH-(goal/maxVal)*chartH;
+    goalLine=`<line x1="0" y1="${gy.toFixed(1)}" x2="${W}" y2="${gy.toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">${goalLine}${bars}</svg>`;
+}
+function trendCardHTML(){
+  const metrics=[['kcal','Kcal'],['carbs','Carbs'],['protein','Protein'],['fat','Fat'],['fibre','Fibre']];
+  return `<div class="summary-card">
+    <div class="sectionhead" style="margin:0 0 6px">
+      <div class="section-title">Last 7 Days</div>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+      ${metrics.map(([k,l])=>`<div class="pillbtn ${trendMetric===k?'active':''}" style="padding:4px 10px;font-size:11px" onclick="setTrendMetric('${k}')">${l}</div>`).join('')}
+    </div>
+    ${trendChartSVG(trendMetric)}
+  </div>`;
+}
+function renderHistory(){
+  const dates=Object.keys(logs).sort().reverse();
+  let h='';
+  if(dates.length>0) h+=trendCardHTML();
+  if(dates.length===0)h+='<div class="empty">No days logged yet.</div>';
+  dates.forEach(d=>{
+    const t=dayTotals(d); const label=d===todayStr()?'Today Â· '+d:d;
+    h+=`<div class="summary-card">
+      <div class="sectionhead" style="margin:0 0 10px"><div style="font-weight:700">${label}</div>
+      <button class="rmbtn" onclick="deleteDay('${d}')">ðŸ—‘</button></div>
+      <div class="summary">
+        ${ringHTML('kcal',t.kcal,'Kcal')}
+        ${ringHTML('carbs',t.carbs,'Carbs')}
+        ${ringHTML('protein',t.protein,'Protein')}
+        ${ringHTML('fat',t.fat,'Fat')}
+        ${ringHTML('fibre',t.fibre,'Fibre')}
+      </div></div>`;
+  });
+  document.getElementById('tab-history').innerHTML=h;
+}
+function deleteDay(d){if(!confirm('Delete log for '+d+'?'))return;delete logs[d];save(LS_LOG,logs);renderHistory();}
+
+/* ---------- NAV ---------- */
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet();});
+document.querySelectorAll('.tab').forEach(tabEl=>{
+  tabEl.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tabEl.classList.add('active');
+    ['today','db','history'].forEach(name=>document.getElementById('tab-'+name).classList.add('hidden'));
+    document.getElementById('tab-'+tabEl.dataset.tab).classList.remove('hidden');
+    if(tabEl.dataset.tab==='today')renderToday();
+    if(tabEl.dataset.tab==='db')renderDB();
+    if(tabEl.dataset.tab==='history')renderHistory();
+  };
+});
+renderToday();
+</script>
+</body>
+</html>
